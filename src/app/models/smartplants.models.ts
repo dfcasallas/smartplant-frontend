@@ -21,6 +21,8 @@ export interface Salud {
 export interface Planta {
   id: number;
   nombre: string;
+  descripcion?: string;
+  imageUrl?: string;
   tipo: Tipo;
   familia: Familia;
   mantenimiento: Mantenimiento;
@@ -37,3 +39,25 @@ export interface PlantaRequest {
 
 export type CatalogKey = 'tipos' | 'familias' | 'mantenimientos' | 'saludes';
 export type CatalogItem = Tipo | Familia | Mantenimiento | Salud;
+
+export type Rol = 'USER' | 'ADMIN';
+
+export interface LoginRequest {
+  email: string;
+  password: string;
+}
+
+export interface RegisterRequest {
+  nombre: string;
+  email: string;
+  password: string;
+  rol?: Rol;
+}
+
+export interface UsuarioResponse {
+  id: number;
+  nombre: string;
+  email: string;
+  rol: Rol;
+  ultimaConexion: string | null;
+}

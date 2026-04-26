@@ -1,0 +1,31 @@
+<header class="topbar">
+  <a class="brand" routerLink="/inicio" aria-label="Ir al inicio">
+    <span class="brand-mark">SP</span>
+    <span>
+      <strong>SmartPlant</strong>
+      <small>3.0</small>
+    </span>
+  </a>
+
+  <nav class="nav-links" aria-label="Navegacion principal">
+    @for (item of mainLinks; track item.path) {
+      <a
+        [routerLink]="item.path"
+        routerLinkActive="active"
+        [routerLinkActiveOptions]="{ exact: item.path === '/inicio' }"
+      >
+        {{ item.label }}
+      </a>
+    }
+  </nav>
+
+  <div class="auth-links">
+    @if (auth.currentUser(); as user) {
+      <span class="user-chip">{{ user.nombre }}</span>
+      <button type="button" class="logout-btn" (click)="logout()">Cerrar sesion</button>
+    } @else {
+      <a routerLink="/login" routerLinkActive="active">Login</a>
+      <a class="register-link" routerLink="/register" routerLinkActive="active">Register</a>
+    }
+  </div>
+</header>
