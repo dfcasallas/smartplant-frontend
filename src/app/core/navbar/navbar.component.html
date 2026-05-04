@@ -1,5 +1,5 @@
 <header class="topbar">
-  <a class="brand" routerLink="/inicio" aria-label="Ir al inicio">
+  <a class="brand" [routerLink]="auth.currentUser() ? '/inicio' : '/login'" aria-label="Ir al inicio">
     <span class="brand-mark">SP</span>
     <span>
       <strong>SmartPlant</strong>
@@ -7,17 +7,21 @@
     </span>
   </a>
 
-  <nav class="nav-links" aria-label="Navegacion principal">
-    @for (item of mainLinks; track item.path) {
-      <a
-        [routerLink]="item.path"
-        routerLinkActive="active"
-        [routerLinkActiveOptions]="{ exact: item.path === '/inicio' }"
-      >
-        {{ item.label }}
-      </a>
-    }
-  </nav>
+  @if (auth.currentUser()) {
+    <nav class="nav-links" aria-label="Navegacion principal">
+      @for (item of mainLinks; track item.path) {
+        <a
+          [routerLink]="item.path"
+          routerLinkActive="active"
+          [routerLinkActiveOptions]="{ exact: item.path === '/inicio' }"
+        >
+          {{ item.label }}
+        </a>
+      }
+    </nav>
+  } @else {
+    <span aria-hidden="true"></span>
+  }
 
   <div class="auth-links">
     @if (auth.currentUser(); as user) {

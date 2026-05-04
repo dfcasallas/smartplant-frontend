@@ -1,6 +1,6 @@
 import { Routes } from '@angular/router';
-import { authGuard } from './core/guards/auth.guard';
 import { LayoutComponent } from './core/layout/layout.component';
+import { authGuard, guestGuard, rootRedirectGuard } from './guards/auth.guard';
 
 export const routes: Routes = [
   {
@@ -10,30 +10,41 @@ export const routes: Routes = [
       {
         path: '',
         pathMatch: 'full',
+        canActivate: [rootRedirectGuard],
+        loadComponent: () => import('./features/home/home.page').then((m) => m.HomePage),
+      },
+      {
+        path: 'home',
         redirectTo: 'inicio',
       },
       {
         path: 'inicio',
+        canActivate: [authGuard],
         loadComponent: () => import('./features/home/home.page').then((m) => m.HomePage),
       },
       {
         path: 'login',
+        canActivate: [guestGuard],
         loadComponent: () => import('./features/login/login.page').then((m) => m.LoginPage),
       },
       {
         path: 'register',
+        canActivate: [guestGuard],
         loadComponent: () => import('./features/register/register.page').then((m) => m.RegisterPage),
       },
       {
         path: 'plantas',
+        canActivate: [authGuard],
         loadComponent: () => import('./features/plantas/plantas.page').then((m) => m.PlantasPage),
       },
       {
         path: 'sugerencias',
+        canActivate: [authGuard],
         loadComponent: () => import('./features/sugerencias/sugerencias.page').then((m) => m.SugerenciasPage),
       },
       {
         path: 'dudas-ia',
+        canActivate: [authGuard],
         loadComponent: () => import('./pages/dudas-ia/dudas-ia.page').then((m) => m.DudasIaPage),
       },
       {
@@ -48,6 +59,7 @@ export const routes: Routes = [
       },
       {
         path: 'admin',
+        canActivate: [authGuard],
         loadComponent: () => import('./features/admin/admin.page').then((m) => m.AdminPage),
       },
     ],

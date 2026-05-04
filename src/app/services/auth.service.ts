@@ -31,8 +31,12 @@ export class AuthService {
     return this.currentUserSignal();
   }
 
-  isLoggedIn(): boolean {
+  isAuthenticated(): boolean {
     return this.currentUserSignal() !== null;
+  }
+
+  isLoggedIn(): boolean {
+    return this.isAuthenticated();
   }
 
   private saveCurrentUser(usuario: UsuarioResponse): void {
