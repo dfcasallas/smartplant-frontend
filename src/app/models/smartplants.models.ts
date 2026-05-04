@@ -128,3 +128,7 @@ export interface UsuarioResponse {
   rol: Rol;
   ultimaConexion: string | null;
 }
+
+export interface LoginResponse extends UsuarioResponse {
+  token: string;
+}
