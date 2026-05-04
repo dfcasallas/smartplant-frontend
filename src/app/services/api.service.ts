@@ -3,12 +3,17 @@ import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import {
   CatalogItem,
+  CatalogoResponse,
   Familia,
+  FamiliaRequest,
+  MantenimientoRequest,
   Mantenimiento,
   Planta,
   PlantaRequest,
   Salud,
+  SaludRequest,
   Tipo,
+  TipoRequest,
 } from '../models/smartplants.models';
 
 @Injectable({ providedIn: 'root' })
@@ -20,11 +25,11 @@ export class ApiService {
     return this.http.get<Tipo[]>(`${this.baseUrl}/tipos`);
   }
 
-  createTipo(payload: Partial<Tipo>): Observable<Tipo> {
+  createTipo(payload: TipoRequest): Observable<Tipo> {
     return this.http.post<Tipo>(`${this.baseUrl}/tipos`, payload);
   }
 
-  updateTipo(id: number, payload: Partial<Tipo>): Observable<Tipo> {
+  updateTipo(id: number, payload: TipoRequest): Observable<Tipo> {
     return this.http.put<Tipo>(`${this.baseUrl}/tipos/${id}`, payload);
   }
 
@@ -36,11 +41,11 @@ export class ApiService {
     return this.http.get<Familia[]>(`${this.baseUrl}/familias`);
   }
 
-  createFamilia(payload: Partial<Familia>): Observable<Familia> {
+  createFamilia(payload: FamiliaRequest): Observable<Familia> {
     return this.http.post<Familia>(`${this.baseUrl}/familias`, payload);
   }
 
-  updateFamilia(id: number, payload: Partial<Familia>): Observable<Familia> {
+  updateFamilia(id: number, payload: FamiliaRequest): Observable<Familia> {
     return this.http.put<Familia>(`${this.baseUrl}/familias/${id}`, payload);
   }
 
@@ -52,11 +57,11 @@ export class ApiService {
     return this.http.get<Mantenimiento[]>(`${this.baseUrl}/mantenimientos`);
   }
 
-  createMantenimiento(payload: Partial<Mantenimiento>): Observable<Mantenimiento> {
+  createMantenimiento(payload: MantenimientoRequest): Observable<Mantenimiento> {
     return this.http.post<Mantenimiento>(`${this.baseUrl}/mantenimientos`, payload);
   }
 
-  updateMantenimiento(id: number, payload: Partial<Mantenimiento>): Observable<Mantenimiento> {
+  updateMantenimiento(id: number, payload: MantenimientoRequest): Observable<Mantenimiento> {
     return this.http.put<Mantenimiento>(`${this.baseUrl}/mantenimientos/${id}`, payload);
   }
 
@@ -68,11 +73,11 @@ export class ApiService {
     return this.http.get<Salud[]>(`${this.baseUrl}/saludes`);
   }
 
-  createSalud(payload: Partial<Salud>): Observable<Salud> {
+  createSalud(payload: SaludRequest): Observable<Salud> {
     return this.http.post<Salud>(`${this.baseUrl}/saludes`, payload);
   }
 
-  updateSalud(id: number, payload: Partial<Salud>): Observable<Salud> {
+  updateSalud(id: number, payload: SaludRequest): Observable<Salud> {
     return this.http.put<Salud>(`${this.baseUrl}/saludes/${id}`, payload);
   }
 
@@ -96,15 +101,7 @@ export class ApiService {
     return this.http.delete<void>(`${this.baseUrl}/plantas/${id}`);
   }
 
-  getCatalogLabel(item: CatalogItem): string {
-    if ('nivel' in item) {
-      return item.nivel;
-    }
-
-    if ('estado' in item) {
-      return item.estado;
-    }
-
-    return item.nombre;
+  getCatalogLabel(item: CatalogItem | CatalogoResponse): string {
+    return item.valor;
   }
 }
