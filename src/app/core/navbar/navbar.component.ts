@@ -21,6 +21,7 @@ export class NavbarComponent {
     { label: 'Inicio', path: '/inicio' },
     { label: 'Plantas', path: '/plantas' },
     { label: 'Sugerencias', path: '/sugerencias' },
+    { label: 'Dudas IA', path: '/dudas-ia' },
     { label: 'Inventario', path: '/inventario' },
     { label: 'Cuidados', path: '/cuidados' },
     { label: 'Admin', path: '/admin' },
