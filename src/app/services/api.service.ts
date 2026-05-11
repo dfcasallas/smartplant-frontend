@@ -12,6 +12,8 @@ import {
   PlantaRequest,
   Salud,
   SaludRequest,
+  SugerenciaRequest,
+  SugerenciaResponse,
   Tipo,
   TipoRequest,
 } from '../models/smartplants.models';
@@ -99,6 +101,10 @@ export class ApiService {
 
   deletePlanta(id: number): Observable<void> {
     return this.http.delete<void>(`${this.baseUrl}/plantas/${id}`);
+  }
+
+  sugerirPlanta(payload: SugerenciaRequest): Observable<SugerenciaResponse> {
+    return this.http.post<SugerenciaResponse>(`${this.baseUrl}/sugerencias`, payload);
   }
 
   getCatalogLabel(item: CatalogItem | CatalogoResponse): string {

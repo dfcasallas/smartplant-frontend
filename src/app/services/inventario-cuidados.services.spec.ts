@@ -31,6 +31,22 @@ describe('InventarioService y CuidadosService', () => {
     request.flush([]);
   });
 
+  it('agrega plantas al inventario con el endpoint real', () => {
+    inventarioService.agregarPlanta(7, { plantaId: 3, nombrePersonalizado: 'Sala' }).subscribe();
+
+    const request = http.expectOne('/api/usuarios/7/inventario');
+    expect(request.request.method).toBe('POST');
+    expect(request.request.body).toEqual({ plantaId: 3, nombrePersonalizado: 'Sala' });
+    request.flush({
+      id: 11,
+      usuarioId: 7,
+      plantaId: 3,
+      nombrePlanta: 'Monstera',
+      nombrePersonalizado: 'Sala',
+      fechaAgregado: '2026-05-04',
+    });
+  });
+
   it('consume detalle de inventario con el endpoint real', () => {
     inventarioService.getInventarioPorId(11).subscribe();
 
