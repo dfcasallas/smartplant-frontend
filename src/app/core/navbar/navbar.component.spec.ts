@@ -15,12 +15,13 @@ describe('NavbarComponent', () => {
   };
 
   let currentUser: ReturnType<typeof signal<UsuarioResponse | null>>;
-  let auth: { currentUser: () => UsuarioResponse | null; logout: ReturnType<typeof vi.fn> };
+  let auth: { currentUser: () => UsuarioResponse | null; isAdmin: ReturnType<typeof vi.fn>; logout: ReturnType<typeof vi.fn> };
 
   beforeEach(async () => {
     currentUser = signal<UsuarioResponse | null>(null);
     auth = {
       currentUser: currentUser.asReadonly(),
+      isAdmin: vi.fn(() => currentUser()?.rol === 'ADMIN'),
       logout: vi.fn(),
     };
 
@@ -59,11 +60,20 @@ describe('NavbarComponent', () => {
     expect(text).toContain('Dudas IA');
     expect(text).toContain('Inventario');
     expect(text).toContain('Cuidados');
-    expect(text).toContain('Admin');
+    expect(text).not.toContain('Admin');
 
     fixture.componentInstance.logout();
 
     expect(auth.logout).toHaveBeenCalled();
     expect(navigateSpy).toHaveBeenCalledWith('/login');
+  });
+
+  it('muestra Admin solo para usuarios administradores', () => {
+    currentUser.set({ ...user, rol: 'ADMIN' });
+    const fixture = TestBed.createComponent(NavbarComponent);
+
+    fixture.detectChanges();
+
+    expect(fixture.nativeElement.textContent).toContain('Admin');
   });
 });

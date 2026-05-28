@@ -1,15 +1,16 @@
 import { CanActivateFn, Router } from '@angular/router';
 import { TestBed } from '@angular/core/testing';
-import { authGuard, guestGuard, rootRedirectGuard } from './auth.guard';
+import { adminGuard, authGuard, guestGuard, rootRedirectGuard } from './auth.guard';
 import { AuthService } from '../services/auth.service';
 
 describe('auth guards', () => {
-  let auth: { isAuthenticated: ReturnType<typeof vi.fn> };
+  let auth: { isAuthenticated: ReturnType<typeof vi.fn>; isAdmin: ReturnType<typeof vi.fn> };
   let router: { navigateByUrl: ReturnType<typeof vi.fn> };
 
   beforeEach(() => {
     auth = {
       isAuthenticated: vi.fn(),
+      isAdmin: vi.fn(),
     };
     router = {
       navigateByUrl: vi.fn(),
@@ -65,6 +66,25 @@ describe('auth guards', () => {
 
     expect(authenticatedResult).toBe(false);
     expect(router.navigateByUrl).toHaveBeenCalledWith('/inicio');
+  });
+
+  it('bloquea admin para usuarios no administradores', () => {
+    auth.isAuthenticated.mockReturnValue(true);
+    auth.isAdmin.mockReturnValue(false);
+
+    const result = runGuard(adminGuard);
+
+    expect(result).toBe(false);
+    expect(router.navigateByUrl).toHaveBeenCalledWith('/inicio');
+  });
+
+  it('permite admin para usuarios administradores', () => {
+    auth.isAuthenticated.mockReturnValue(true);
+    auth.isAdmin.mockReturnValue(true);
+
+    const result = runGuard(adminGuard);
+
+    expect(result).toBe(true);
   });
 
   function runGuard(guard: CanActivateFn): ReturnType<CanActivateFn> {

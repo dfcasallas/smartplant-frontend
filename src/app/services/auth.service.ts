@@ -40,6 +40,10 @@ export class AuthService {
     return this.isAuthenticated();
   }
 
+  isAdmin(): boolean {
+    return this.currentUserSignal()?.rol === 'ADMIN';
+  }
+
   getToken(): string | null {
     try {
       return globalThis.localStorage?.getItem(this.tokenStorageKey) || null;

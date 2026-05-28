@@ -9,7 +9,7 @@
 
   @if (auth.currentUser()) {
     <nav class="nav-links" aria-label="Navegacion principal">
-      @for (item of mainLinks; track item.path) {
+      @for (item of visibleLinks(); track item.path) {
         <a
           [routerLink]="item.path"
           routerLinkActive="active"

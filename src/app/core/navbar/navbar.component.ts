@@ -5,6 +5,7 @@ import { AuthService } from '../../services/auth.service';
 interface NavItem {
   label: string;
   path: string;
+  adminOnly?: boolean;
 }
 
 @Component({
@@ -24,8 +25,12 @@ export class NavbarComponent {
     { label: 'Dudas IA', path: '/dudas-ia' },
     { label: 'Inventario', path: '/inventario' },
     { label: 'Cuidados', path: '/cuidados' },
-    { label: 'Admin', path: '/admin' },
+    { label: 'Admin', path: '/admin', adminOnly: true },
   ];
+
+  visibleLinks(): NavItem[] {
+    return this.mainLinks.filter((item) => !item.adminOnly || this.auth.isAdmin());
+  }
 
   logout(): void {
     this.auth.logout();
