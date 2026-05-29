@@ -14,11 +14,17 @@ import { ChatService } from '../../services/chat.service';
         <h1>Dudas con IA</h1>
         <p class="muted-text">Haz una pregunta sobre cuidado de plantas y recibe una respuesta practica.</p>
       </div>
+      <span class="status-pill">Groq conectado por backend</span>
     </section>
 
     <section class="ai-grid">
       <article class="content-card">
-        <h2>Tu pregunta</h2>
+        <div class="section-heading compact-heading">
+          <div>
+            <p class="eyebrow">Consulta</p>
+            <h2>Tu pregunta</h2>
+          </div>
+        </div>
         <form class="form-stack" [formGroup]="form" (ngSubmit)="submit()">
           <label>
             Duda sobre plantas
@@ -68,8 +74,12 @@ import { ChatService } from '../../services/chat.service';
     `
       .ai-grid {
         display: grid;
-        gap: 18px;
+        gap: 14px;
         grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr);
+      }
+
+      .compact-heading {
+        margin-bottom: 0;
       }
 
       textarea {
@@ -82,7 +92,7 @@ import { ChatService } from '../../services/chat.service';
       }
 
       .ai-answer {
-        background: var(--surface-soft);
+        background: linear-gradient(135deg, var(--surface-soft), #ffffff);
         border: 1px solid var(--line);
         border-radius: 8px;
         color: var(--text);
@@ -93,16 +103,7 @@ import { ChatService } from '../../services/chat.service';
       }
 
       .empty-state {
-        align-items: center;
-        background: var(--soft-green);
-        border-radius: 8px;
-        color: var(--primary-dark);
-        display: grid;
-        gap: 8px;
         margin-top: 14px;
-        min-height: 220px;
-        padding: 24px;
-        text-align: center;
       }
 
       .empty-state p {

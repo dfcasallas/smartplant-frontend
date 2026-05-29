@@ -15,6 +15,7 @@
           routerLinkActive="active"
           [routerLinkActiveOptions]="{ exact: item.path === '/inicio' }"
         >
+          <span class="nav-icon" aria-hidden="true">{{ item.icon }}</span>
           {{ item.label }}
         </a>
       }
@@ -25,7 +26,10 @@
 
   <div class="auth-links">
     @if (auth.currentUser(); as user) {
-      <span class="user-chip">{{ user.nombre }}</span>
+      <span class="user-chip" [title]="user.nombre">
+        <span aria-hidden="true">{{ user.nombre.slice(0, 1).toUpperCase() }}</span>
+        {{ user.nombre }}
+      </span>
       <button type="button" class="logout-btn" (click)="logout()">Cerrar sesion</button>
     } @else {
       <a routerLink="/login" routerLinkActive="active">Login</a>

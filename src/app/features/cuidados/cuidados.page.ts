@@ -32,11 +32,23 @@ import { InventarioService } from '../../services/inventario.service';
 
     <section class="layer-grid">
       <article class="content-card">
-        <h2>Registro rapido</h2>
+        <div class="section-heading compact-heading">
+          <div>
+            <p class="eyebrow">Registro rapido</p>
+            <h2>Nuevo cuidado</h2>
+          </div>
+          <span class="status-pill">{{ inventario().length }} plantas</span>
+        </div>
+
         @if (loadingInventario()) {
           <p class="muted-text panel-note">Cargando inventario...</p>
         } @else if (inventario().length === 0) {
-          <p class="muted-text panel-note">No tienes plantas en inventario. Agrega una planta para registrar cuidados.</p>
+          <div class="empty-state panel-note">
+            <div>
+              <strong>Sin plantas en inventario</strong>
+              <p class="muted-text">Agrega una planta para registrar cuidados.</p>
+            </div>
+          </div>
         } @else {
           <form class="form-stack" [formGroup]="form" (ngSubmit)="guardarCuidado()">
             <label>
@@ -47,14 +59,24 @@ import { InventarioService } from '../../services/inventario.service';
                 }
               </select>
             </label>
-            <label>
-              Tipo de cuidado
-              <select formControlName="tipoCuidado">
+
+            <div>
+              <label class="field-label">Tipo de cuidado</label>
+              <div class="type-grid">
                 @for (tipo of tiposCuidado; track tipo.value) {
-                  <option [value]="tipo.value">{{ tipo.label }}</option>
+                  <button
+                    type="button"
+                    class="type-button"
+                    [class.active]="form.controls.tipoCuidado.value === tipo.value"
+                    (click)="form.controls.tipoCuidado.setValue(tipo.value)"
+                  >
+                    <strong>{{ tipo.icon }}</strong>
+                    {{ tipo.label }}
+                  </button>
                 }
-              </select>
-            </label>
+              </div>
+            </div>
+
             <label>
               Observacion
               <textarea rows="4" formControlName="observacion" placeholder="Tierra seca, riego moderado"></textarea>
@@ -70,21 +92,42 @@ import { InventarioService } from '../../services/inventario.service';
       </article>
 
       <article class="timeline-card">
-        <h2>Linea de tiempo</h2>
+        <div class="section-heading compact-heading">
+          <div>
+            <p class="eyebrow">Historial</p>
+            <h2>Linea de tiempo</h2>
+          </div>
+          @if (selectedInventarioId()) {
+            <span class="status-pill">{{ cuidados().length }} registros</span>
+          }
+        </div>
+
         @if (loadingCuidados()) {
           <p class="muted-text panel-note">Cargando cuidados...</p>
         } @else if (!selectedInventarioId()) {
           <p class="muted-text panel-note">Selecciona una planta de inventario para ver su historial.</p>
         } @else if (cuidados().length === 0) {
-          <p class="muted-text panel-note">Esta planta aun no tiene cuidados registrados.</p>
+          <div class="empty-state panel-note">
+            <div>
+              <strong>Sin cuidados registrados</strong>
+              <p class="muted-text">Esta planta aun no tiene cuidados registrados.</p>
+            </div>
+          </div>
         } @else {
           <ol class="timeline">
             @for (cuidado of cuidados(); track cuidado.id) {
               <li>
-                <strong>{{ cuidado.tipoCuidado }}</strong>
-                <span>{{ formatoFecha(cuidado.fecha) }}</span>
-                <p>{{ cuidado.observacion || 'Sin observacion.' }}</p>
-                <small>Proxima fecha sugerida: {{ formatoFecha(cuidado.proximaFechaSugerida) }}</small>
+                <span class="timeline-dot" [class]="tonoCuidado(cuidado.tipoCuidado)">
+                  {{ iconoCuidado(cuidado.tipoCuidado) }}
+                </span>
+                <div class="timeline-content">
+                  <div class="timeline-header">
+                    <strong>{{ etiquetaCuidado(cuidado.tipoCuidado) }} <small>{{ cuidado.tipoCuidado }}</small></strong>
+                    <span>{{ formatoFecha(cuidado.fecha) }}</span>
+                  </div>
+                  <p>{{ cuidado.observacion || 'Sin observacion.' }}</p>
+                  <small>Proxima fecha sugerida: {{ formatoFecha(cuidado.proximaFechaSugerida) }}</small>
+                </div>
               </li>
             }
           </ol>
@@ -92,6 +135,17 @@ import { InventarioService } from '../../services/inventario.service';
       </article>
     </section>
   `,
+  styles: [
+    `
+      .compact-heading {
+        margin-bottom: 0;
+      }
+
+      .field-label {
+        margin-bottom: 7px;
+      }
+    `,
+  ],
 })
 export class CuidadosPage implements OnInit {
   private readonly auth = inject(AuthService);
@@ -106,12 +160,12 @@ export class CuidadosPage implements OnInit {
   readonly error = signal<string | null>(null);
   readonly success = signal<string | null>(null);
 
-  readonly tiposCuidado: Array<{ value: TipoCuidado; label: string }> = [
-    { value: 'RIEGO', label: 'RIEGO' },
-    { value: 'EXPOSICION_SOL', label: 'EXPOSICION_SOL' },
-    { value: 'ABONO', label: 'ABONO' },
-    { value: 'PODA', label: 'PODA' },
-    { value: 'CAMBIO_UBICACION', label: 'CAMBIO_UBICACION' },
+  readonly tiposCuidado: Array<{ value: TipoCuidado; label: string; icon: string }> = [
+    { value: 'RIEGO', label: 'Riego', icon: 'RI' },
+    { value: 'EXPOSICION_SOL', label: 'Sol', icon: 'SO' },
+    { value: 'ABONO', label: 'Abono', icon: 'AB' },
+    { value: 'PODA', label: 'Poda', icon: 'PO' },
+    { value: 'CAMBIO_UBICACION', label: 'Ubicacion', icon: 'UB' },
   ];
 
   readonly form = new FormGroup({
@@ -215,6 +269,24 @@ export class CuidadosPage implements OnInit {
 
   selectedInventarioId(): number | null {
     return this.parseId(this.form.controls.inventarioId.value);
+  }
+
+  etiquetaCuidado(tipo: TipoCuidado): string {
+    return this.tiposCuidado.find((item) => item.value === tipo)?.label || tipo;
+  }
+
+  iconoCuidado(tipo: TipoCuidado): string {
+    return this.tiposCuidado.find((item) => item.value === tipo)?.icon || 'CU';
+  }
+
+  tonoCuidado(tipo: TipoCuidado): string {
+    if (tipo === 'ABONO') {
+      return 'abono';
+    }
+    if (tipo === 'PODA' || tipo === 'CAMBIO_UBICACION') {
+      return 'poda';
+    }
+    return '';
   }
 
   private cargarCuidados(inventarioId: number): void {

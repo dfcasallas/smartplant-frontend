@@ -1,12 +1,8 @@
-import { Component } from '@angular/core';
-
-interface PlantCard {
-  name: string;
-  family: string;
-  maintenance: string;
-  health: string;
-  imageUrl?: string;
-}
+import { HttpErrorResponse } from '@angular/common/http';
+import { Component, OnInit, inject, signal } from '@angular/core';
+import { Planta } from '../../models/smartplants.models';
+import { ApiService } from '../../services/api.service';
+import { finalize } from 'rxjs';
 
 @Component({
   selector: 'app-plantas-page',
@@ -14,56 +10,86 @@ interface PlantCard {
     <section class="page-header">
       <div>
         <p class="eyebrow">Catalogo</p>
-        <h1>Plantas en cards</h1>
-        <p class="muted-text">Vista preparada para listar el catalogo desde /api/plantas.</p>
+        <h1>Plantas disponibles</h1>
+        <p class="muted-text">Catalogo real cargado desde /api/plantas.</p>
       </div>
-      <button type="button">Nueva planta</button>
+      <button type="button" [disabled]="loading()" (click)="cargarPlantas()">
+        {{ loading() ? 'Cargando...' : 'Actualizar' }}
+      </button>
     </section>
 
-    <section class="plant-card-grid">
-      @for (plant of plants; track plant.name) {
-        <article class="plant-card">
-          @if (plant.imageUrl) {
-            <img [src]="plant.imageUrl" [alt]="plant.name" />
-          } @else {
-            <div class="image-fallback">{{ plant.name.slice(0, 2) }}</div>
-          }
+    @if (error(); as currentError) {
+      <div class="form-message error">{{ currentError }}</div>
+    }
 
-          <div class="plant-card-body">
-            <span class="status-pill">{{ plant.maintenance }}</span>
-            <h2>{{ plant.name }}</h2>
-            <p>{{ plant.family }}</p>
-            <div class="meta-row">
-              <span>{{ plant.health }}</span>
-              <span>Detalle</span>
+    @if (loading()) {
+      <section class="section-block">
+        <p class="muted-text">Cargando plantas...</p>
+      </section>
+    } @else if (plantas().length === 0) {
+      <section class="empty-state">
+        <div>
+          <strong>No hay plantas en el catalogo</strong>
+          <p class="muted-text">Cuando el backend tenga datos, apareceran aqui.</p>
+        </div>
+      </section>
+    } @else {
+      <section class="plant-card-grid">
+        @for (plant of plantas(); track plant.id) {
+          <article class="plant-card">
+            @if (plant.imageUrl) {
+              <img [src]="plant.imageUrl" [alt]="plant.nombre" />
+            } @else {
+              <div class="image-fallback">{{ plant.nombre.slice(0, 2) }}</div>
+            }
+
+            <div class="plant-card-body">
+              <span class="status-pill">{{ plant.mantenimiento.valor }}</span>
+              <h2>{{ plant.nombre }}</h2>
+              <p class="muted-text">{{ plant.descripcion || 'Sin descripcion registrada.' }}</p>
+              <div class="meta-row">
+                <span>{{ plant.familia.valor }}</span>
+                <span>{{ plant.tipo.valor }}</span>
+              </div>
+              <div class="meta-row">
+                <span>Salud</span>
+                <strong>{{ plant.salud.valor }}</strong>
+              </div>
             </div>
-          </div>
-        </article>
-      }
-    </section>
+          </article>
+        }
+      </section>
+    }
   `,
 })
-export class PlantasPage {
-  readonly plants: PlantCard[] = [
-    {
-      name: 'Monstera deliciosa',
-      family: 'Araceae',
-      maintenance: 'MEDIO',
-      health: 'Sana',
-      imageUrl: 'https://images.unsplash.com/photo-1614594975525-e45190c55d0b?auto=format&fit=crop&w=900&q=80',
-    },
-    {
-      name: 'Pothos dorado',
-      family: 'Epipremnum',
-      maintenance: 'BAJO',
-      health: 'Excelente',
-      imageUrl: 'https://images.unsplash.com/photo-1598880940080-ff9a29891b85?auto=format&fit=crop&w=900&q=80',
-    },
-    {
-      name: 'Sansevieria',
-      family: 'Asparagaceae',
-      maintenance: 'BAJO',
-      health: 'Estable',
-    },
-  ];
+export class PlantasPage implements OnInit {
+  private readonly api = inject(ApiService);
+
+  readonly plantas = signal<Planta[]>([]);
+  readonly loading = signal(false);
+  readonly error = signal<string | null>(null);
+
+  ngOnInit(): void {
+    this.cargarPlantas();
+  }
+
+  cargarPlantas(): void {
+    this.error.set(null);
+    this.loading.set(true);
+
+    this.api.getPlantas()
+      .pipe(finalize(() => this.loading.set(false)))
+      .subscribe({
+        next: (plantas) => this.plantas.set(plantas),
+        error: (error) => this.error.set(this.extractError(error)),
+      });
+  }
+
+  private extractError(error: unknown): string {
+    if (error instanceof HttpErrorResponse) {
+      return error.error?.message || 'No fue posible cargar el catalogo.';
+    }
+
+    return 'No fue posible cargar el catalogo.';
+  }
 }

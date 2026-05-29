@@ -1,5 +1,5 @@
 import { HttpErrorResponse } from '@angular/common/http';
-import { Component, OnInit, inject, signal } from '@angular/core';
+import { Component, OnInit, computed, inject, signal } from '@angular/core';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { finalize, forkJoin } from 'rxjs';
 import { InventarioResponse, Planta } from '../../models/smartplants.models';
@@ -30,9 +30,15 @@ import { InventarioService } from '../../services/inventario.service';
       <div class="form-message error">{{ currentError }}</div>
     }
 
-    <section class="layer-grid">
+    <section class="layer-grid inventory-panel">
       <article class="content-card">
-        <h2>Agregar planta</h2>
+        <div class="section-heading compact-heading">
+          <div>
+            <p class="eyebrow">Nueva planta</p>
+            <h2>Agregar al inventario</h2>
+          </div>
+          <span class="status-pill">{{ plantas().length }} opciones</span>
+        </div>
 
         @if (plantas().length === 0 && !loading()) {
           <p class="muted-text panel-note">No hay plantas disponibles en el catalogo.</p>
@@ -66,49 +72,106 @@ import { InventarioService } from '../../services/inventario.service';
         }
       </article>
 
-      <article class="content-card">
-        <h2>Resumen</h2>
-        <p class="muted-text panel-note">
-          Total en inventario: <strong>{{ inventario().length }}</strong>
-        </p>
+      <article class="content-card inventory-summary">
+        <span class="metric-icon">IV</span>
+        <p class="eyebrow">Resumen</p>
+        <strong>{{ inventario().length }}</strong>
+        <span class="muted-text">plantas guardadas</span>
         <p class="muted-text panel-note">
           Usuario activo: <strong>{{ auth.getCurrentUser()?.nombre || 'Sin sesion' }}</strong>
         </p>
       </article>
     </section>
 
-    @if (loading()) {
-      <section class="section-block">
+    <section class="section-block">
+      <div class="section-heading">
+        <div>
+          <p class="eyebrow">Mis plantas</p>
+          <h2>Inventario persistente</h2>
+        </div>
+        <label class="search-bar">
+          <span aria-hidden="true">Buscar</span>
+          <input type="search" [value]="query()" (input)="query.set($any($event.target).value)" placeholder="Nombre o especie" />
+        </label>
+      </div>
+
+      @if (loading()) {
         <p class="muted-text">Cargando inventario...</p>
-      </section>
-    } @else if (inventario().length === 0) {
-      <section class="section-block">
-        <div class="section-heading">
+      } @else if (inventario().length === 0) {
+        <div class="empty-state">
           <div>
-            <p class="eyebrow">Estado vacio</p>
-            <h2>Aun no tienes plantas guardadas</h2>
+            <strong>Aun no tienes plantas guardadas</strong>
+            <p class="muted-text">Usa el formulario para agregar una planta real desde el catalogo.</p>
           </div>
         </div>
-        <p class="muted-text">Usa el formulario para agregar una planta real desde el catalogo.</p>
-      </section>
-    } @else {
-      <section class="feed-grid">
-        @for (item of inventario(); track item.id) {
-          <article class="feed-card">
-            <div class="image-fallback">{{ item.nombrePlanta.slice(0, 2) }}</div>
-            <div class="feed-body">
-              <div>
-                <span class="status-pill">{{ formatoFecha(item.fechaAgregado) }}</span>
-                <h2>{{ item.nombrePersonalizado }}</h2>
-                <p>{{ item.nombrePlanta }}</p>
+      } @else if (inventarioFiltrado().length === 0) {
+        <div class="empty-state">
+          <div>
+            <strong>Sin resultados</strong>
+            <p class="muted-text">Prueba con otro nombre o especie.</p>
+          </div>
+        </div>
+      } @else {
+        <div class="feed-grid">
+          @for (item of inventarioFiltrado(); track item.id) {
+            <article class="feed-card inventory-card">
+              <div class="image-fallback">{{ iniciales(item.nombrePlanta) }}</div>
+              <div class="feed-body">
+                <div>
+                  <span class="status-pill">{{ formatoFecha(item.fechaAgregado) }}</span>
+                  <h2>{{ item.nombrePersonalizado }}</h2>
+                  <p class="muted-text">{{ item.nombrePlanta }}</p>
+                </div>
+                <div class="meta-row">
+                  <span>Inventario #{{ item.id }}</span>
+                  <strong>Planta #{{ item.plantaId }}</strong>
+                </div>
               </div>
-              <p>Inventario #{{ item.id }} · Planta #{{ item.plantaId }}</p>
-            </div>
-          </article>
-        }
-      </section>
-    }
+            </article>
+          }
+        </div>
+      }
+    </section>
   `,
+  styles: [
+    `
+      .inventory-summary {
+        align-content: start;
+      }
+
+      .inventory-summary strong {
+        display: block;
+        font-size: 3rem;
+        line-height: 1;
+        margin-top: 8px;
+      }
+
+      .compact-heading {
+        margin-bottom: 0;
+      }
+
+      .inventory-card {
+        display: grid;
+        grid-template-columns: 132px minmax(0, 1fr);
+      }
+
+      .inventory-card .image-fallback {
+        height: 100%;
+        min-height: 150px;
+        aspect-ratio: auto;
+      }
+
+      @media (max-width: 680px) {
+        .inventory-card {
+          grid-template-columns: 1fr;
+        }
+
+        .inventory-card .image-fallback {
+          aspect-ratio: 16 / 9;
+        }
+      }
+    `,
+  ],
 })
 export class InventarioPage implements OnInit {
   readonly auth = inject(AuthService);
@@ -121,6 +184,18 @@ export class InventarioPage implements OnInit {
   readonly saving = signal(false);
   readonly error = signal<string | null>(null);
   readonly success = signal<string | null>(null);
+  readonly query = signal('');
+
+  readonly inventarioFiltrado = computed(() => {
+    const term = this.query().trim().toLowerCase();
+    if (!term) {
+      return this.inventario();
+    }
+
+    return this.inventario().filter((item) =>
+      `${item.nombrePersonalizado} ${item.nombrePlanta}`.toLowerCase().includes(term),
+    );
+  });
 
   readonly form = new FormGroup({
     plantaId: new FormControl('', { nonNullable: true, validators: [Validators.required] }),
@@ -203,6 +278,10 @@ export class InventarioPage implements OnInit {
       month: 'short',
       year: 'numeric',
     }).format(new Date(`${fecha}T00:00:00`));
+  }
+
+  iniciales(nombre: string): string {
+    return nombre.split(/\s+/).slice(0, 2).map((part) => part[0]).join('').toUpperCase();
   }
 
   private extractError(error: unknown, fallback: string): string {

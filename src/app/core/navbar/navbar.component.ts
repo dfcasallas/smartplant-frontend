@@ -5,6 +5,7 @@ import { AuthService } from '../../services/auth.service';
 interface NavItem {
   label: string;
   path: string;
+  icon: string;
   adminOnly?: boolean;
 }
 
@@ -19,13 +20,13 @@ export class NavbarComponent {
   private readonly router = inject(Router);
 
   readonly mainLinks: NavItem[] = [
-    { label: 'Inicio', path: '/inicio' },
-    { label: 'Plantas', path: '/plantas' },
-    { label: 'Sugerencias', path: '/sugerencias' },
-    { label: 'Dudas IA', path: '/dudas-ia' },
-    { label: 'Inventario', path: '/inventario' },
-    { label: 'Cuidados', path: '/cuidados' },
-    { label: 'Admin', path: '/admin', adminOnly: true },
+    { label: 'Inicio', path: '/inicio', icon: 'IN' },
+    { label: 'Plantas', path: '/plantas', icon: 'PL' },
+    { label: 'Sugerencias', path: '/sugerencias', icon: 'SU' },
+    { label: 'Dudas IA', path: '/dudas-ia', icon: 'IA' },
+    { label: 'Inventario', path: '/inventario', icon: 'IV' },
+    { label: 'Cuidados', path: '/cuidados', icon: 'CU' },
+    { label: 'Admin', path: '/admin', icon: 'AD', adminOnly: true },
   ];
 
   visibleLinks(): NavItem[] {
